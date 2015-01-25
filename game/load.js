@@ -5,7 +5,7 @@ Game = {};
 var w = 1200;
 var h = 600;
 var death = 0;
-var levelCount = 4;
+var levelCount = 5;
 var tutorials = [
     {
         color: '#eaeaea',
@@ -29,12 +29,18 @@ var tutorials = [
         color: '#312db8',
         message: 'Blue ones will increase your speed',
         level: 3,
-        x: 300, y: 10,
+        x: 600, y: 10,
         viewed: false
     }, {
         color: '#464646',
         message: 'Black ones will decrease your speed',
         level: 4,
+        x: 600, y: 10,
+        viewed: false
+    }, {
+        color: '#00ff00',
+        message: 'Green one will boost you',
+        level: 5,
         x: 600, y: 10,
         viewed: false
     }
@@ -76,11 +82,16 @@ Game.Load.prototype.preload = function () {
     game.load.tilemap('level2', 'levels/2.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.tilemap('level3', 'levels/3.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.tilemap('level4', 'levels/4.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level5', 'levels/5.json', null, Phaser.Tilemap.TILED_JSON);
 
     game.load.image('tiles', 'img/tiles.png');
     game.load.image('castle', 'img/castle.png');
     game.load.image('knife', 'img/knife.png');
     game.load.image('rect', 'img/white_rect.png');
+    game.load.image('logo', 'img/logo.png');
+    game.load.image('menuImg', 'img/playButton.png');
+    game.load.image('finished', 'img/finished.png');
+    game.load.image('endText', 'img/endText.png');
 
     game.load.audio('jump', 'audio/jump.wav');
     game.load.audio('jump2', 'audio/jump2.wav');
@@ -88,6 +99,9 @@ Game.Load.prototype.preload = function () {
     game.load.audio('victory', 'audio/victory.wav');
     game.load.audio('speed_inc', 'audio/speed_inc.wav');
     game.load.audio('speed_dec', 'audio/speed_dec.wav');
+    game.load.audio('boost', 'audio/boost.wav');
+    game.load.audio('blip', 'audio/blip.wav');
+
 
 };
 Game.Load.prototype.create = function () {

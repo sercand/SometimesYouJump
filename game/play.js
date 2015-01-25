@@ -2,6 +2,7 @@
  * Created by Sercan on 24.1.2015.
  */
 var ctx, isDrawing, points = [];
+var canvasElement;
 
 function midPointBtw(p1, p2) {
     return {
@@ -43,15 +44,21 @@ Game.Play.prototype.create = function () {
     game.add.sprite(0, 0, myBitmap);
     ctx = myBitmap.context;
 
-    var el = document.getElementById('gameContainer');
-    el.onmousedown = function (e) {
+    canvasElement = document.getElementById('gameContainer');
+
+    canvasElement.onMouseDown = null;
+    canvasElement.onmousemove = null;
+    canvasElement.onmouseup = null;
+
+    canvasElement.onmousedown = function (e) {
+        // if (self.painted_wall.body != null)
         self.painted_wall.body.clearShapes();
         isDrawing = true;
         points.push({x: e.clientX, y: e.clientY});
         lastPointUsed = false;
         preUsedPoint = points[0];
     };
-    el.onmousemove = function (e) {
+    canvasElement.onmousemove = function (e) {
         if (!isDrawing) return;
         points.push({x: e.clientX, y: e.clientY});
 
@@ -90,7 +97,7 @@ Game.Play.prototype.create = function () {
             preUsedPoint = null;
         }
     };
-    el.onmouseup = function () {
+    canvasElement.onmouseup = function () {
         isDrawing = false;
         if (points.length > 1 && !lastPointUsed) {
             self.add_rect(points[points.length - 1], preUsedPoint);
@@ -98,13 +105,13 @@ Game.Play.prototype.create = function () {
         preUsedPoint = null;
         lastPointUsed = false;
         points.length = 0;
+        //if (self.painted_wall.body != null)
         self.painted_wall.body.setMaterial(self.worldMaterial);
     };
 
     game.physics.startSystem(Phaser.Physics.P2JS);
     game.physics.p2.setBoundsToWorld(true, true, false, true, false);
     game.physics.p2.gravity.y = 300;
-
 
     this.level = 1;
     this.levelFinished = false;
@@ -113,7 +120,7 @@ Game.Play.prototype.create = function () {
     this.player = game.add.sprite(w / 2 - 50, h / 2, 'player');
     this.player.anchor.setTo(0.5, 0.5);
     this.player.frame = 2;
-
+    this.player.animations.add('jump', [2, 0, 1, 3, 2], 15, false);
     this.painted_wall = game.add.sprite(w / 2, h / 2);
 
     var b = game.camera.bounds;
@@ -125,6 +132,7 @@ Game.Play.prototype.create = function () {
     this.sfx_victory = game.add.audio('victory');
     this.sfx_speed_inc = game.add.audio('speed_inc');
     this.sfx_speed_dec = game.add.audio('speed_dec');
+    this.sfx_boost = game.add.audio('boost');
 
     this.tutorial_sprites = [];
     this.tutorial_labels = [];
@@ -133,16 +141,15 @@ Game.Play.prototype.create = function () {
 };
 
 Game.Play.prototype.update = function () {
-    if (this.player.position.y > h - 20 ||
-        this.player.position.x > w - 20 ||
-        this.player.position.x < 20) {
+    if (this.player.position.y > h - 5 ||
+        this.player.position.x > w - 5 ||
+        this.player.position.x < 0) {
         return this.player_dead();
     }
     if (this.levelFinished) {
         this.next_level();
     }
 };
-
 
 Game.Play.prototype.next_level = function () {
     if (!this.player.alive)return;
@@ -158,7 +165,6 @@ Game.Play.prototype.next_level = function () {
         this.load_map();
     }
 };
-
 
 Game.Play.prototype.load_map = function () {
     this.clear_map();
@@ -199,6 +205,8 @@ Game.Play.prototype.load_map = function () {
             this.create_castle(body.x, body.y);
         } else if (body.tileIndex == 3) {
             body.createBodyCallback(this.player, this.player_dead, this);
+        } else if (body.tileIndex == 4) {
+            body.createBodyCallback(this.player, this.boost_player, this);
         } else if (body.tileIndex == 6) {
             body.createBodyCallback(this.player, this.increase_horizontal_velocity, this);
         } else if (body.tileIndex == 7) {
@@ -231,7 +239,6 @@ Game.Play.prototype.load_map = function () {
     this.player.body.createBodyCallback(this.painted_wall, this.player_jump, this);
     game.physics.p2.setImpactEvents(true);
 };
-
 
 Game.Play.prototype.add_rect = function (p1, p2) {
     var p11 = {x: p1.x - w / 2, y: p1.y - h / 2};
@@ -266,17 +273,24 @@ Game.Play.prototype.reset_player = function () {
     this.player.body.velocity.x = 100;
     this.player.body.velocity.y = 140;
 };
+
 Game.Play.prototype.increase_horizontal_velocity = function () {
     this.player.body.velocity.x *= 4;
     this.shake_screen(3, 10);
     this.sfx_speed_inc.play('', 0, 0.15);
 };
 
-
 Game.Play.prototype.decrease_horizontal_velocity = function () {
     this.shake_screen(5, 20);
     this.player.body.velocity.x *= 0.65;
     this.sfx_speed_dec.play('', 0, 0.15);
+};
+
+Game.Play.prototype.boost_player = function () {
+    this.player.body.velocity.y = -1000;
+    this.player.body.velocity.x = 30 * this.player.body.velocity.x < 0 ? -1 : 1;
+    this.shake_screen(3, 5);
+    this.sfx_boost.play('', 0, 0.15);
 };
 
 Game.Play.prototype.create_castle = function (x, y) {
@@ -322,7 +336,7 @@ Game.Play.prototype.add_tutorial = function (tut) {
     game.add.tween(label)
         .to({y: tut.y}, 300, "Linear")
         .to({y: tut.y}, 5000, "Linear")
-        .to({y: tut.y-80}, 300, "Linear")
+        .to({y: tut.y - 80}, 300, "Linear")
         .start();
 
     tut.viewed = true;
@@ -343,7 +357,11 @@ Game.Play.prototype.clean_tutorials = function () {
 
 Game.Play.prototype.player_jump = function () {
     this.sfx_jump.play('', 0, 0.15);
+    this.player.animations.play('jump');
 };
+
 Game.Play.prototype.player_jump_2 = function () {
     this.sfx_jump2.play('', 0, 0.15);
+    this.player.animations.play('jump');
+
 };
