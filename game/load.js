@@ -5,7 +5,7 @@ Game = {};
 var w = 1200;
 var h = 600;
 var death = 0;
-
+var levelCount = 3;
 Game.Boot = function (game) {
 };
 
@@ -37,9 +37,11 @@ Game.Load.prototype.preload = function () {
     preloading.x -= preloading.width / 2;
     game.load.setPreloadSprite(preloading);
 
-    game.load.spritesheet('player', 'img/player3.png', 24, 30);
+    game.load.spritesheet('player', 'img/player.png', 48, 48);
 
     this.game.load.tilemap('level1', 'levels/1.json', null, Phaser.Tilemap.TILED_JSON);
+    this.game.load.tilemap('level2', 'levels/2.json', null, Phaser.Tilemap.TILED_JSON);
+    this.game.load.tilemap('level3', 'levels/3.json', null, Phaser.Tilemap.TILED_JSON);
 
     this.game.load.image('tiles', 'img/tiles.png');
 
