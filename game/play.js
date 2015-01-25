@@ -141,8 +141,8 @@ Game.Play.prototype.create = function () {
 };
 
 Game.Play.prototype.update = function () {
-    if (this.player.position.y > h - 5 ||
-        this.player.position.x > w - 5 ||
+    if (this.player.position.y > h - 20 ||
+        this.player.position.x > w - 15 ||
         this.player.position.x < 0) {
         return this.player_dead();
     }
