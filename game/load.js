@@ -88,7 +88,7 @@ Game.Load.prototype.preload = function () {
     game.load.image('castle', 'img/castle.png');
     game.load.image('knife', 'img/knife.png');
     game.load.image('rect', 'img/white_rect.png');
-    game.load.image('logo', 'img/logo.png');
+    game.load.image('logo', 'img/Logo.png');
     game.load.image('menuImg', 'img/playButton.png');
     game.load.image('finished', 'img/finished.png');
     game.load.image('endText', 'img/endText.png');
