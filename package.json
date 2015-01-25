@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/sercand/MakeItPossible",
   "dependencies": {
-    "express": "^4.11.1"
+    "express": "^4.11.1",
+    "morgan": "^1.5.1"
   }
 }

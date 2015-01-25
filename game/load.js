@@ -5,13 +5,46 @@ Game = {};
 var w = 1200;
 var h = 600;
 var death = 0;
-var levelCount = 3;
+var levelCount = 4;
+var tutorials = [
+    {
+        color: '#eaeaea',
+        message: 'Draw to Survive!',
+        level: 1,
+        x: 100, y: 10,
+        viewed: false
+    }, {
+        color: '#ffc428',
+        message: 'Yellow is your target',
+        level: 1,
+        x: 800, y: 10,
+        viewed: false
+    }, {
+        color: '#e82a18',
+        message: "Don't touch to Red ones",
+        level: 2,
+        x: 300, y: 10,
+        viewed: false
+    }, {
+        color: '#312db8',
+        message: 'Blue ones will increase your speed',
+        level: 3,
+        x: 300, y: 10,
+        viewed: false
+    }, {
+        color: '#464646',
+        message: 'Black ones will decrease your speed',
+        level: 4,
+        x: 600, y: 10,
+        viewed: false
+    }
+];
 Game.Boot = function (game) {
 };
 
 Game.Boot.prototype = {
     preload: function () {
-        game.stage.backgroundColor = '#00a2ff';
+        game.stage.backgroundColor = '#3ce28e';
         game.load.image('loading', '/img/loading.png');
         game.load.image('loading2', '/img/loading2.png');
     },
@@ -39,11 +72,22 @@ Game.Load.prototype.preload = function () {
 
     game.load.spritesheet('player', 'img/player.png', 48, 48);
 
-    this.game.load.tilemap('level1', 'levels/1.json', null, Phaser.Tilemap.TILED_JSON);
-    this.game.load.tilemap('level2', 'levels/2.json', null, Phaser.Tilemap.TILED_JSON);
-    this.game.load.tilemap('level3', 'levels/3.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level1', 'levels/1.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level2', 'levels/2.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level3', 'levels/3.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level4', 'levels/4.json', null, Phaser.Tilemap.TILED_JSON);
 
-    this.game.load.image('tiles', 'img/tiles.png');
+    game.load.image('tiles', 'img/tiles.png');
+    game.load.image('castle', 'img/castle.png');
+    game.load.image('knife', 'img/knife.png');
+    game.load.image('rect', 'img/white_rect.png');
+
+    game.load.audio('jump', 'audio/jump.wav');
+    game.load.audio('jump2', 'audio/jump2.wav');
+    game.load.audio('dead', 'audio/dead.wav');
+    game.load.audio('victory', 'audio/victory.wav');
+    game.load.audio('speed_inc', 'audio/speed_inc.wav');
+    game.load.audio('speed_dec', 'audio/speed_dec.wav');
 
 };
 Game.Load.prototype.create = function () {

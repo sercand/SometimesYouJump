@@ -13,6 +13,8 @@ var minRectDist = 81;
 var preUsedPoint = null;
 var lastPointUsed = false;
 var defaultPaintLength = 100;
+var backColors = ['#4183d9', '#3973bf', '#4192d9', '#3981bf', '#66b1f2'];
+var backIndex;
 function sqrtDistanceOfTwoPoints(p1, p2) {
     return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
 }
@@ -34,7 +36,8 @@ Game.Play = function (game) {
 Game.Play.prototype = {};
 
 Game.Play.prototype.create = function () {
-    game.stage.backgroundColor = '#00a2ff';
+    backIndex = game.rnd.integerInRange(0, backColors.length - 1);
+    game.stage.backgroundColor = backColors[backIndex % backColors.length];
     var self = this;
     var myBitmap = game.add.bitmapData(w, h);
     game.add.sprite(0, 0, myBitmap);
@@ -106,18 +109,33 @@ Game.Play.prototype.create = function () {
     this.level = 1;
     this.levelFinished = false;
     death = 0;
+    this.create_castle(0, 0);
     this.player = game.add.sprite(w / 2 - 50, h / 2, 'player');
     this.player.anchor.setTo(0.5, 0.5);
     this.player.frame = 2;
 
     this.painted_wall = game.add.sprite(w / 2, h / 2);
+
+    var b = game.camera.bounds;
+    game.camera.bounds = new Phaser.Rectangle(b.x - 5, b.y - 5, b.width + 10, b.height + 10);
+
+    this.sfx_jump2 = game.add.audio('jump2');
+    this.sfx_jump = game.add.audio('jump');
+    this.sfx_dead = game.add.audio('dead');
+    this.sfx_victory = game.add.audio('victory');
+    this.sfx_speed_inc = game.add.audio('speed_inc');
+    this.sfx_speed_dec = game.add.audio('speed_dec');
+
+    this.tutorial_sprites = [];
+    this.tutorial_labels = [];
+
     this.next_level();
 };
 
 Game.Play.prototype.update = function () {
     if (this.player.position.y > h - 20 ||
         this.player.position.x > w - 20 ||
-        this.player.position.y < 20) {
+        this.player.position.x < 20) {
         return this.player_dead();
     }
     if (this.levelFinished) {
@@ -144,12 +162,14 @@ Game.Play.prototype.next_level = function () {
 
 Game.Play.prototype.load_map = function () {
     this.clear_map();
+    game.stage.backgroundColor = backColors[(++backIndex) % backColors.length];
 
     this.map = game.add.tilemap('level' + this.level);
     this.map.addTilesetImage('tiles', 'tiles');
     this.map.setCollisionBetween(0, 10);
     // this.map.setTileIndexCallback(2, this.player_collision, this);
     this.layer = this.map.createLayer('layer');
+    this.init_tutorials();
     this.level += 1;
     this.maxPaintLength = defaultPaintLength;
     //
@@ -171,8 +191,12 @@ Game.Play.prototype.load_map = function () {
     for (var i = 0; i < arr.length; i++) {
         var body = arr[i];
         body.setMaterial(this.worldMaterial);
-        if (body.tileIndex == 2) {
+        if (body.tileIndex == 1) {
+            body.createBodyCallback(this.player, this.player_jump_2, this);
+        }
+        else if (body.tileIndex == 2) {
             body.createBodyCallback(this.player, this.player_collision, this);
+            this.create_castle(body.x, body.y);
         } else if (body.tileIndex == 3) {
             body.createBodyCallback(this.player, this.player_dead, this);
         } else if (body.tileIndex == 6) {
@@ -204,8 +228,7 @@ Game.Play.prototype.load_map = function () {
 
     this.painted_wall.body.setMaterial(this.worldMaterial);
 
-    this.player.body.createBodyCallback(this.painted_wall, function (b1, b2) {
-    });
+    this.player.body.createBodyCallback(this.painted_wall, this.player_jump, this);
     game.physics.p2.setImpactEvents(true);
 };
 
@@ -225,31 +248,102 @@ Game.Play.prototype.clear_map = function () {
         this.layer.destroy();
         this.map.destroy();
         game.physics.p2.clear();
+        this.clean_tutorials();
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 };
 
-Game.Play.prototype.player_movement = function () {
-};
-
 Game.Play.prototype.player_dead = function () {
     death += 1;
+    this.shake_screen(10, 70);
+    this.sfx_dead.play('', 0, 0.15);
     this.reset_player();
 };
 
 Game.Play.prototype.reset_player = function () {
     this.player.reset(30, 60);
+    this.player.z = 50;
     this.player.body.velocity.x = 100;
     this.player.body.velocity.y = 140;
 };
 Game.Play.prototype.increase_horizontal_velocity = function () {
-    this.player.body.velocity.x *= 3;
+    this.player.body.velocity.x *= 4;
+    this.shake_screen(3, 10);
+    this.sfx_speed_inc.play('', 0, 0.15);
 };
 
+
 Game.Play.prototype.decrease_horizontal_velocity = function () {
+    this.shake_screen(5, 20);
     this.player.body.velocity.x *= 0.65;
+    this.sfx_speed_dec.play('', 0, 0.15);
+};
+
+Game.Play.prototype.create_castle = function (x, y) {
+    if (!this.castle) {
+        this.castle = game.add.sprite(x, y, 'castle');
+        this.castle.anchor.setTo(0, 1);
+        this.castle.z = 100;
+    }
+    this.castle.reset(x + 5, y);
+};
+
+Game.Play.prototype.shake_screen = function (i, t) {
+    game.add.tween(game.camera)
+        .to({y: i}, t, Phaser.Easing.Linear.None)
+        .to({y: -i}, t, Phaser.Easing.Linear.None)
+        .to({y: 0}, t, Phaser.Easing.Linear.None).start();
+
+    game.add.tween(game.camera)
+        .to({x: i}, t, Phaser.Easing.Linear.None)
+        .to({x: -i}, t, Phaser.Easing.Linear.None)
+        .to({x: 0}, t, Phaser.Easing.Linear.None).start();
 };
 
 Game.Play.prototype.player_collision = function () {
+    this.sfx_victory.play('', 0, 0.15);
+
     this.levelFinished = true;
+};
+
+Game.Play.prototype.init_tutorials = function () {
+    for (var i = 0; i < tutorials.length; i++) {
+        if (tutorials[i].level === this.level)
+            this.add_tutorial(tutorials[i]);
+    }
+};
+
+Game.Play.prototype.add_tutorial = function (tut) {
+    if (tut.viewed)return;
+
+    var label = game.add.text(tut.x, tut.y - 80, tut.message, {font: '16px Arial', fill: tut.color});
+    this.tutorial_labels.push(label);
+
+    game.add.tween(label)
+        .to({y: tut.y}, 300, "Linear")
+        .to({y: tut.y}, 5000, "Linear")
+        .to({y: tut.y-80}, 300, "Linear")
+        .start();
+
+    tut.viewed = true;
+};
+
+Game.Play.prototype.clean_tutorials = function () {
+    for (var i = 0; i < this.tutorial_sprites; i++) {
+        this.tutorial_sprites[i].kill();
+        this.tutorial_sprites[i].destroy();
+    }
+    for (var j = 0; j < this.tutorial_labels.length; j++) {
+        this.tutorial_labels[j].destroy();
+    }
+
+    this.tutorial_sprites.length = 0;
+    this.tutorial_labels.length = 0;
+};
+
+Game.Play.prototype.player_jump = function () {
+    this.sfx_jump.play('', 0, 0.15);
+};
+Game.Play.prototype.player_jump_2 = function () {
+    this.sfx_jump2.play('', 0, 0.15);
 };
