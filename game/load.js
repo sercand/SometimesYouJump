@@ -5,7 +5,7 @@ Game = {};
 var w = 1200;
 var h = 600;
 var death = 0;
-var levelCount = 5;
+var levelCount = 8;
 var tutorials = [
     {
         color: '#eaeaea',
@@ -22,25 +22,25 @@ var tutorials = [
     }, {
         color: '#e82a18',
         message: "Don't touch to Red ones",
-        level: 2,
+        level: 3,
         x: 300, y: 10,
         viewed: false
     }, {
         color: '#312db8',
         message: 'Blue ones will increase your speed',
-        level: 3,
+        level: 4,
         x: 600, y: 10,
         viewed: false
     }, {
         color: '#464646',
         message: 'Black ones will decrease your speed',
-        level: 4,
+        level: 6,
         x: 600, y: 10,
         viewed: false
     }, {
         color: '#00ff00',
         message: 'Green one will boost you',
-        level: 5,
+        level: 7,
         x: 600, y: 10,
         viewed: false
     }
@@ -78,11 +78,15 @@ Game.Load.prototype.preload = function () {
 
     game.load.spritesheet('player', 'img/player.png', 48, 48);
 
-    game.load.tilemap('level1', 'levels/1.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.tilemap('level2', 'levels/2.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.tilemap('level3', 'levels/3.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.tilemap('level4', 'levels/4.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.tilemap('level5', 'levels/5.json', null, Phaser.Tilemap.TILED_JSON);
+
+    game.load.tilemap('level1', 'levels/draw.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level2', 'levels/noparachute.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level3', 'levels/introRed.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level4', 'levels/introBlue.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level5', 'levels/rightangle.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level6', 'levels/introBlack.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level7', 'levels/introGreen.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.tilemap('level8', 'levels/hole.json', null, Phaser.Tilemap.TILED_JSON);
 
     game.load.image('tiles', 'img/tiles.png');
     game.load.image('castle', 'img/castle.png');
