@@ -51,8 +51,8 @@ Game.Boot = function (game) {
 Game.Boot.prototype = {
     preload: function () {
         game.stage.backgroundColor = '#3ce28e';
-        game.load.image('loading', '/img/loading.png');
-        game.load.image('loading2', '/img/loading2.png');
+        game.load.image('loading', 'img/loading.png');
+        game.load.image('loading2', 'img/loading2.png');
     },
     create: function () {
         this.game.state.start('Load');
